@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  postgres:
+    environment:
+      POSTGRES_INITDB_ARGS: "-c log_statement=all"
+    ports:
+      - "5432:5432"
+
+  redis:
+    command: redis-server --loglevel debug
+    ports:
+      - "6379:6379"
+
+  backend:
+    environment:
+      SQL_ECHO: "true"
+      ENV: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    command: npm run dev
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - bookkeeping-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - bookkeeping-network
