@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bookkeeping-postgres
+    environment:
+      POSTGRES_USER: bookkeeper
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: bookkeeping
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bookkeeper"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bookkeeping-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: bookkeeping-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bookkeeping-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: bookkeeping-backend
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      DATABASE_URL: postgresql://bookkeeper:${DB_PASSWORD:-password}@postgres:5432/bookkeeping
+      REDIS_URL: redis://redis:6379/0
+      ENV: ${ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - bookkeeping-network
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: bookkeeping-celery-worker
+    command: celery -A backend.tasks worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://bookkeeper:${DB_PASSWORD:-password}@postgres:5432/bookkeeping
+      REDIS_URL: redis://redis:6379/0
+      ENV: ${ENV:-development}
+    volumes:
+      - .:/app
+      - logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    networks:
+      - bookkeeping-network
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: bookkeeping-celery-beat
+    command: celery -A backend.tasks beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    environment:
+      DATABASE_URL: postgresql://bookkeeper:${DB_PASSWORD:-password}@postgres:5432/bookkeeping
+      REDIS_URL: redis://redis:6379/0
+      ENV: ${ENV:-development}
+    volumes:
+      - .:/app
+      - logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    networks:
+      - bookkeeping-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bookkeeping-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8000
+      NODE_ENV: ${ENV:-development}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+    networks:
+      - bookkeeping-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  logs:
+
+networks:
+  bookkeeping-network:
+    driver: bridge
