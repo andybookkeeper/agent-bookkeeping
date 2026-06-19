@@ -1,0 +1,699 @@
+{
+  "info": {
+    "_postman_id": "3f1c6cb2-5f57-437d-9a6e-e6af68e1f9f2",
+    "name": "BKeeping Hardening Checks",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Validation suite for auth, strict double-entry posting, legacy deprecation, and OpenAPI security metadata."
+  },
+  "item": [
+    {
+      "name": "01 - Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Auth & Authorization",
+      "item": [
+        {
+          "name": "GET /api/accounts (No Key -> 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/accounts?limit=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "accounts"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/accounts (Write Key -> 200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key_write}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/accounts?limit=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "accounts"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/accounts (Read Key -> 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key_read}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Read Should Fail\",\n  \"type\": \"asset\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/accounts/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 403', function () {",
+                  "  pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Setup Accounts For Pair Tests",
+      "item": [
+        {
+          "name": "Create Debit Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key_write}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pair Debit {{timestamp}}\",\n  \"type\": \"asset\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/accounts/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('timestamp', Date.now().toString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.collectionVariables.set('debit_account_id', data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Credit Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key_write}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pair Credit {{timestamp}}\",\n  \"type\": \"revenue\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/accounts/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "accounts",
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.collectionVariables.set('credit_account_id', data.id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Strict Pair Posting",
+      "item": [
+        {
+          "name": "Invalid Pair (Same Account -> 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key_write}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"{{$isoTimestamp}}\",\n  \"description\": \"Invalid same account\",\n  \"debit_account_id\": \"{{debit_account_id}}\",\n  \"credit_account_id\": \"{{debit_account_id}}\",\n  \"amount\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/journal-entries/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "journal-entries",
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Valid Pair (201 + capture entry)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key_write}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"{{$isoTimestamp}}\",\n  \"description\": \"Valid pair posting\",\n  \"debit_account_id\": \"{{debit_account_id}}\",\n  \"credit_account_id\": \"{{credit_account_id}}\",\n  \"amount\": 15\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/journal-entries/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "journal-entries",
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test('Returns two entries', function () {",
+                  "  pm.expect(Array.isArray(data)).to.be.true;",
+                  "  pm.expect(data.length).to.eql(2);",
+                  "});",
+                  "pm.test('Both share same pair_id', function () {",
+                  "  pm.expect(data[0].pair_id).to.eql(data[1].pair_id);",
+                  "});",
+                  "pm.collectionVariables.set('pair_entry_id', data[0].id);",
+                  "pm.collectionVariables.set('pair_id', data[0].pair_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Pair Amount (both sides)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key_write}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 22\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/journal-entries/{{pair_entry_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "journal-entries",
+                "{{pair_entry_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test('Both entries updated to 22', function () {",
+                  "  pm.expect(data[0].amount).to.eql(22);",
+                  "  pm.expect(data[1].amount).to.eql(22);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Pair",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key_write}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/journal-entries/{{pair_entry_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "journal-entries",
+                "{{pair_entry_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirm Pair Entry Deleted",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key_write}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/journal-entries/{{pair_entry_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "journal-entries",
+                "{{pair_entry_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Legacy Endpoint Deprecation",
+      "item": [
+        {
+          "name": "POST /api/journal-entries/legacy (410)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key_write}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"{{$isoTimestamp}}\",\n  \"description\": \"Legacy\",\n  \"account_id\": \"{{debit_account_id}}\",\n  \"amount\": 1,\n  \"type\": \"debit\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/journal-entries/legacy",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "journal-entries",
+                "legacy"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 410', function () {",
+                  "  pm.response.to.have.status(410);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 - OpenAPI Security & Deprecation Metadata",
+      "item": [
+        {
+          "name": "GET /openapi.json metadata checks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/openapi.json",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "openapi.json"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var doc = pm.response.json();",
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('ApiKeyAuth security scheme exists', function () {",
+                  "  pm.expect(doc.components.securitySchemes.ApiKeyAuth).to.exist;",
+                  "  pm.expect(doc.components.securitySchemes.ApiKeyAuth.name).to.eql('X-API-Key');",
+                  "});",
+                  "pm.test('Accounts endpoint requires ApiKeyAuth', function () {",
+                  "  pm.expect(doc.paths['/api/accounts/'].get.security).to.deep.include({ ApiKeyAuth: [] });",
+                  "});",
+                  "pm.test('Legacy endpoint marked deprecated', function () {",
+                  "  pm.expect(doc.paths['/api/journal-entries/legacy'].post.deprecated).to.eql(true);",
+                  "});",
+                  "pm.test('Legacy schema fields marked deprecated', function () {",
+                  "  pm.expect(doc.components.schemas.JournalEntryCreate.properties.account_id.deprecated).to.eql(true);",
+                  "  pm.expect(doc.components.schemas.JournalEntryUpdate.properties.amount.deprecated).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 - Frontend Smoke",
+      "item": [
+        {
+          "name": "GET Frontend Home",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/",
+              "host": [
+                "{{frontend_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "frontend_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "api_key_read",
+      "value": "dev-read-key"
+    },
+    {
+      "key": "api_key_write",
+      "value": "dev-write-key"
+    },
+    {
+      "key": "debit_account_id",
+      "value": ""
+    },
+    {
+      "key": "credit_account_id",
+      "value": ""
+    },
+    {
+      "key": "pair_entry_id",
+      "value": ""
+    },
+    {
+      "key": "pair_id",
+      "value": ""
+    },
+    {
+      "key": "timestamp",
+      "value": ""
+    }
+  ]
+}

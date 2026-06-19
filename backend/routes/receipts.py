@@ -7,9 +7,14 @@ import logging
 from backend.models.receipt import Receipt
 from backend.schemas.receipt import ReceiptCreate, ReceiptUpdate, ReceiptResponse
 from backend.database import get_db
+from backend.auth import authorize_api_request
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/receipts", tags=["Receipts"])
+router = APIRouter(
+    prefix="/api/receipts",
+    tags=["Receipts"],
+    dependencies=[Depends(authorize_api_request)],
+)
 
 
 @router.get("/", response_model=List[ReceiptResponse])

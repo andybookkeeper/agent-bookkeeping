@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useApiClient } from '@/lib/api';
 
 interface Transaction {
@@ -17,11 +17,7 @@ export default function Transactions() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [statusFilter]);
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       setLoading(true);
       const params = statusFilter ? `?status=${statusFilter}` : '';
@@ -34,7 +30,11 @@ export default function Transactions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, statusFilter]);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">

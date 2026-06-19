@@ -1,10 +1,8 @@
 from datetime import datetime
 from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Enum
-from sqlalchemy.ext.declarative import declarative_base
+from backend.models.base import Base
 import enum
 import uuid
-
-Base = declarative_base()
 
 
 class InvoiceStatus(str, enum.Enum):

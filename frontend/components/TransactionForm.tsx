@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { transactionsAPI } from '../lib/api';
+import { transactionsAPI } from '@/lib/api';
 
 interface TransactionFormProps {
   onSuccess?: () => void;

@@ -3,16 +3,12 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZIPMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.database import engine
-from backend.models.account import Base as AccountBase
-from backend.models.journal_entry import Base as JournalEntryBase
-from backend.models.transaction_raw import Base as TransactionBase
-from backend.models.invoice import Base as InvoiceBase
-from backend.models.payment import Base as PaymentBase
-from backend.models.receipt import Base as ReceiptBase
+from backend.auth import validate_auth_settings
+from backend.migrations.runner import run_migrations
 from backend.routes import accounts, journal_entries, transactions, invoices, payments, receipts
 from backend.utils.logging import get_logger
 
@@ -28,13 +24,14 @@ ALLOWED_ORIGINS = os.getenv(
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
     logger.info("Application startup")
-    
-    AccountBase.metadata.create_all(bind=engine)
-    JournalEntryBase.metadata.create_all(bind=engine)
-    TransactionBase.metadata.create_all(bind=engine)
-    InvoiceBase.metadata.create_all(bind=engine)
-    PaymentBase.metadata.create_all(bind=engine)
-    ReceiptBase.metadata.create_all(bind=engine)
+
+    validate_auth_settings()
+
+    auto_migrate = os.getenv("AUTO_MIGRATE", "true").lower() == "true"
+    if auto_migrate:
+        run_migrations(engine)
+    else:
+        logger.warning("AUTO_MIGRATE disabled; startup will not apply pending migrations")
     
     yield
     
@@ -48,7 +45,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-app.add_middleware(GZIPMiddleware, minimum_size=1000)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,

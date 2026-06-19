@@ -7,9 +7,14 @@ import logging
 from backend.models.transaction_raw import TransactionRaw
 from backend.schemas.transaction_raw import TransactionRawCreate, TransactionRawUpdate, TransactionRawResponse
 from backend.database import get_db
+from backend.auth import authorize_api_request
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/transactions", tags=["Transactions"])
+router = APIRouter(
+    prefix="/api/transactions",
+    tags=["Transactions"],
+    dependencies=[Depends(authorize_api_request)],
+)
 
 
 @router.get("/", response_model=List[TransactionRawResponse])

@@ -1,9 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
+from backend.models.base import Base
 import uuid
-
-Base = declarative_base()
 
 
 class Receipt(Base):

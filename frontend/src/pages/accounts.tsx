@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useApiClient } from '@/lib/api';
 
 interface Account {
@@ -16,11 +16,7 @@ export default function Accounts() {
   const [error, setError] = useState<string | null>(null);
   const [newAccount, setNewAccount] = useState({ name: '', type: 'asset' });
 
-  useEffect(() => {
-    fetchAccounts();
-  }, []);
-
-  const fetchAccounts = async () => {
+  const fetchAccounts = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get('/accounts');
@@ -32,7 +28,11 @@ export default function Accounts() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
+
+  useEffect(() => {
+    fetchAccounts();
+  }, [fetchAccounts]);
 
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();

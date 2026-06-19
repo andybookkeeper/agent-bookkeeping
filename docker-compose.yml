@@ -46,6 +46,9 @@ services:
       REDIS_URL: redis://redis:6379/0
       ENV: ${ENV:-development}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      API_KEY_READONLY: ${API_KEY_READONLY}
+      API_KEY_READWRITE: ${API_KEY_READWRITE}
+      API_KEY_ADMIN: ${API_KEY_ADMIN}
     ports:
       - "8000:8000"
     volumes:
@@ -84,7 +87,7 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     container_name: bookkeeping-celery-beat
-    command: celery -A backend.tasks beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    command: celery -A backend.tasks beat --loglevel=info
     environment:
       DATABASE_URL: postgresql://bookkeeper:${DB_PASSWORD:-password}@postgres:5432/bookkeeping
       REDIS_URL: redis://redis:6379/0
@@ -106,6 +109,7 @@ services:
     container_name: bookkeeping-frontend
     environment:
       NEXT_PUBLIC_API_URL: http://backend:8000
+      NEXT_PUBLIC_API_KEY: ${NEXT_PUBLIC_API_KEY}
       NODE_ENV: ${ENV:-development}
     ports:
       - "3000:3000"

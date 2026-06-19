@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { accountsAPI } from '../lib/api';
+import { accountsAPI } from '@/lib/api';
 import Link from 'next/link';
 
 interface Account {

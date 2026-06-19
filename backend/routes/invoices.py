@@ -7,9 +7,14 @@ import logging
 from backend.models.invoice import Invoice
 from backend.schemas.invoice import InvoiceCreate, InvoiceUpdate, InvoiceResponse
 from backend.database import get_db
+from backend.auth import authorize_api_request
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/invoices", tags=["Invoices"])
+router = APIRouter(
+    prefix="/api/invoices",
+    tags=["Invoices"],
+    dependencies=[Depends(authorize_api_request)],
+)
 
 
 @router.get("/", response_model=List[InvoiceResponse])

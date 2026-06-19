@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useApiClient } from '@/lib/api';
 
 interface Receipt {
@@ -14,11 +14,7 @@ export default function Receipts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchReceipts();
-  }, []);
-
-  const fetchReceipts = async () => {
+  const fetchReceipts = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get('/receipts');
@@ -30,7 +26,11 @@ export default function Receipts() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
+
+  useEffect(() => {
+    fetchReceipts();
+  }, [fetchReceipts]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">

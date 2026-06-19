@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { invoicesAPI } from '../lib/api';
+import { invoicesAPI } from '@/lib/api';
 
 interface Invoice {
   id: number;

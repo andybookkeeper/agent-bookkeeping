@@ -7,9 +7,14 @@ import logging
 from backend.models.payment import Payment
 from backend.schemas.payment import PaymentCreate, PaymentUpdate, PaymentResponse
 from backend.database import get_db
+from backend.auth import authorize_api_request
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/payments", tags=["Payments"])
+router = APIRouter(
+    prefix="/api/payments",
+    tags=["Payments"],
+    dependencies=[Depends(authorize_api_request)],
+)
 
 
 @router.get("/", response_model=List[PaymentResponse])

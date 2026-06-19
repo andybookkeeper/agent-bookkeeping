@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useApiClient } from '@/lib/api';
 
@@ -20,32 +20,32 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setLoading(true);
-        const [accountsRes, transactionsRes, invoicesRes] = await Promise.all([
-          api.get('/accounts?limit=1'),
-          api.get('/transactions?limit=1'),
-          api.get('/invoices?limit=1'),
-        ]);
-        
-        setStats({
-          totalAccounts: accountsRes.data?.length || 0,
-          totalTransactions: transactionsRes.data?.length || 0,
-          totalInvoices: invoicesRes.data?.length || 0,
-          totalBalance: 0,
-        });
-      } catch (err) {
-        setError('Failed to load dashboard data');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchStats = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [accountsRes, transactionsRes, invoicesRes] = await Promise.all([
+        api.get('/accounts?limit=1'),
+        api.get('/transactions?limit=1'),
+        api.get('/invoices?limit=1'),
+      ]);
 
+      setStats({
+        totalAccounts: accountsRes.data?.length || 0,
+        totalTransactions: transactionsRes.data?.length || 0,
+        totalInvoices: invoicesRes.data?.length || 0,
+        totalBalance: 0,
+      });
+    } catch (err) {
+      setError('Failed to load dashboard data');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [api]);
+
+  useEffect(() => {
     fetchStats();
-  }, []);
+  }, [fetchStats]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
