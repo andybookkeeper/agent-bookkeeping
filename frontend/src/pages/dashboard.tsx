@@ -48,62 +48,70 @@ export default function Dashboard() {
   }, [fetchStats]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
+    <div className="max-w-7xl mx-auto">
+      <div className="glass-panel rounded-3xl p-6 md:p-8 fade-up">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-7">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-teal-700 font-semibold mb-2">
+              Operations
+            </p>
+            <h1 className="text-4xl font-bold text-slate-900">Dashboard</h1>
+          </div>
+          <p className="text-sm text-slate-600">Live snapshot of your bookkeeping activity.</p>
+        </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
             {error}
           </div>
         )}
 
         {loading ? (
           <div className="text-center py-12">
-            <p className="text-gray-600">Loading dashboard data...</p>
+            <p className="text-slate-600">Loading dashboard data...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-gray-500 text-sm font-medium">Total Accounts</div>
-              <div className="text-3xl font-bold text-gray-900 mt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="bg-white/90 border border-slate-100 p-6 rounded-2xl shadow-sm">
+              <div className="text-slate-500 text-xs uppercase tracking-[0.16em] font-semibold">Total Accounts</div>
+              <div className="text-3xl font-bold text-slate-900 mt-2">
                 {stats.totalAccounts}
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-gray-500 text-sm font-medium">Transactions</div>
-              <div className="text-3xl font-bold text-gray-900 mt-2">
+            <div className="bg-white/90 border border-slate-100 p-6 rounded-2xl shadow-sm">
+              <div className="text-slate-500 text-xs uppercase tracking-[0.16em] font-semibold">Transactions</div>
+              <div className="text-3xl font-bold text-slate-900 mt-2">
                 {stats.totalTransactions}
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-gray-500 text-sm font-medium">Invoices</div>
-              <div className="text-3xl font-bold text-gray-900 mt-2">
+            <div className="bg-white/90 border border-slate-100 p-6 rounded-2xl shadow-sm">
+              <div className="text-slate-500 text-xs uppercase tracking-[0.16em] font-semibold">Invoices</div>
+              <div className="text-3xl font-bold text-slate-900 mt-2">
                 {stats.totalInvoices}
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-gray-500 text-sm font-medium">Total Balance</div>
-              <div className="text-3xl font-bold text-gray-900 mt-2">
+            <div className="bg-white/90 border border-slate-100 p-6 rounded-2xl shadow-sm">
+              <div className="text-slate-500 text-xs uppercase tracking-[0.16em] font-semibold">Total Balance</div>
+              <div className="text-3xl font-bold text-slate-900 mt-2">
                 ${stats.totalBalance.toFixed(2)}
               </div>
             </div>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Quick Links</h2>
+        <div className="bg-white/90 border border-slate-100 rounded-2xl shadow-sm p-6">
+          <h2 className="text-xl font-semibold mb-4 text-slate-900">Quick Links</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Link href="/accounts" className="text-blue-600 hover:text-blue-700">
+            <Link href="/accounts" className="text-teal-700 hover:text-teal-800 font-medium">
               → Manage Accounts
             </Link>
-            <Link href="/transactions" className="text-blue-600 hover:text-blue-700">
+            <Link href="/transactions" className="text-teal-700 hover:text-teal-800 font-medium">
               → View Transactions
             </Link>
-            <Link href="/invoices" className="text-blue-600 hover:text-blue-700">
+            <Link href="/invoices" className="text-teal-700 hover:text-teal-800 font-medium">
               → Create Invoice
             </Link>
           </div>
